@@ -1,10 +1,10 @@
 import numpy as np
 
-class TurtleAgent(object):
+class TurtleQTableAgent(object):
     LEARNING_RATE = 0.2
     DISCOUNT = 0.8
     EXPLORATION_RATE = 0.05
-    DISCRETE_STATE_SIZE = [25, 25, 16]
+    DISCRETE_STATE_SIZE = [25, 25, 36]
     MAX_INDICES = [i - 1 for i in DISCRETE_STATE_SIZE]
 
     def __init__(self, observation_space, action_space):

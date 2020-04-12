@@ -1,18 +1,18 @@
 import gym
 import numpy as np
 import time
-from turtle_env import StayAwayFromCenterEnvironment
-from turtle_agent import TurtleAgent
+from turtle_env import StayAwayFromCenterEnvironment, DontTouchTheWallEnvironment
+from turtle_agent import TurtleQTableAgent
 import matplotlib.pyplot as plt
 
 def main():
-    env = StayAwayFromCenterEnvironment()
-    agent = TurtleAgent(env.observation_space, env.action_space)
+    env = DontTouchTheWallEnvironment()
+    agent = TurtleQTableAgent(env.observation_space, env.action_space)
     train_data = []
     DISPLAY_GAMES = 1000
     game_performance = []
     try:
-        for game_index in range(10001):
+        for game_index in range(15001):
             if game_index == 0 or game_index > 1000 and game_index % DISPLAY_GAMES == 0:
                 env.enable_draw()
             else:
@@ -22,14 +22,14 @@ def main():
             action = env.action_space.sample()
             previous_observation = None
             start_time = time.time()
-            for step_index in range(75):
+            for step_index in range(100):
                 env.render()
                 observation, reward, done, info = env.step(action)
                 total_reward += reward
-                if done:
-                    break
                 if previous_observation:
                     agent.feedback(previous_observation, action, observation, reward)
+                if done:
+                    break
                 action = agent.act(observation)
                 previous_observation = observation
             if game_index % 100 == 0:

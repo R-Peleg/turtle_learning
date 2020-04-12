@@ -33,10 +33,7 @@ class BaseTurtleEnv(gym.Env, metaclass=abc.ABCMeta):
         turtle.tracer(False)
 
     def step(self, action):
-        action_mathod = {
-            0: self._circle,
-            1: self._flip,
-        }[action]
+        action_mathod = self._possible_actions[action]
         action_mathod()
         
         position_x, position_y = self._turtle.pos()
@@ -66,25 +63,52 @@ class BaseTurtleEnv(gym.Env, metaclass=abc.ABCMeta):
 
 
 class StayAwayFromCenterEnvironment(BaseTurtleEnv):
-
-    def _circle(self):
-        self._turtle.circle(150, 30)
-
-    def _flip(self):
-        self._turtle.circle(20, 280)
-
+    """
+    The challange: Stay as far as possible from (0, 0), without falling from the border
+    """
     def _get_possible_actions(self):
-        return [self._circle, self._flip]
+        def forward():
+            self._turtle.forward(50)
+        def right():
+            self._turtle.circle(10, 90)
+        return [forward, right]
 
     def _evaluate_current_state(self, action, state):
         position_x, position_y, angle = state
         done = False
         is_out_of_bound = abs(position_x) > self.MAX_LOCATION_X or abs(position_y) > self.MAX_LOCATION_Y
-        # Calculate reward: distance from (300, 300)
+
         distance_from_origin = self._turtle.distance(0, 0)
         reward = distance_from_origin / 10
         if is_out_of_bound:
             done = True
             reward -= 1000
+        if action == 0: # Move forward bonus
+            reward += 10
+        info = {}
+        return reward, done, info
+
+
+class DontTouchTheWallEnvironment(BaseTurtleEnv):
+    """
+    The challange: Stay as long as you can without falling from the border
+    """
+    def _get_possible_actions(self):
+        def right():
+            self._turtle.circle(100, 20)
+        def left():
+            self._turtle.circle(-100, 20)
+        return [right, left]
+
+    def _evaluate_current_state(self, action, state):
+        position_x, position_y, angle = state
+        done = False
+        is_out_of_bound = abs(position_x) > self.MAX_LOCATION_X or abs(position_y) > self.MAX_LOCATION_Y
+
+        if is_out_of_bound:
+            done = True
+            reward = -100
+        else:
+            reward = 10
         info = {}
         return reward, done, info
