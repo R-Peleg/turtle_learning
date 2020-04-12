@@ -1,12 +1,12 @@
 import gym
 import numpy as np
 import time
-from turtle_env import TurtleEnv
+from turtle_env import StayAwayFromCenterEnvironment
 from turtle_agent import TurtleAgent
 import matplotlib.pyplot as plt
 
 def main():
-    env = TurtleEnv()
+    env = StayAwayFromCenterEnvironment()
     agent = TurtleAgent(env.observation_space, env.action_space)
     train_data = []
     DISPLAY_GAMES = 1000
