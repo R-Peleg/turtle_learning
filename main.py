@@ -1,19 +1,23 @@
 import gym
 import numpy as np
 import time
-from turtle_env import StayAwayFromCenterEnvironment, DontTouchTheWallEnvironment
+from turtle_env import StayAwayFromCenterEnvironment, DontTouchTheWallEnvironment, HitThePointChallange, \
+    VerticalMovementChallange
 from turtle_agent import TurtleQTableAgent
+from neural_nework_agent import NeuralNetworkAgent
 import matplotlib.pyplot as plt
 
 def main():
-    env = DontTouchTheWallEnvironment()
-    agent = TurtleQTableAgent(env.observation_space, env.action_space)
+    env = HitThePointChallange()
+    agent = NeuralNetworkAgent(env.observation_space, env.action_space)
     train_data = []
     DISPLAY_GAMES = 1000
     game_performance = []
     try:
-        for game_index in range(15001):
-            if game_index == 0 or game_index > 1000 and game_index % DISPLAY_GAMES == 0:
+        reward_history = []
+        start_time = time.time()
+        for game_index in range(100001):
+            if game_index % DISPLAY_GAMES == 0:
                 env.enable_draw()
             else:
                 env.disable_draw()
@@ -21,22 +25,27 @@ def main():
             total_reward = 0
             action = env.action_space.sample()
             previous_observation = None
-            start_time = time.time()
-            for step_index in range(100):
+            feedbacks = []
+            for step_index in range(25):
                 env.render()
                 observation, reward, done, info = env.step(action)
                 total_reward += reward
                 if previous_observation:
-                    agent.feedback(previous_observation, action, observation, reward)
+                    feedbacks.append((previous_observation, action, observation, reward))
                 if done:
                     break
                 action = agent.act(observation)
                 previous_observation = observation
+            if len(feedbacks) > 128:
+                agent.feedback(feedbacks)
+            reward_history.append(total_reward)
             if game_index % 100 == 0:
-                print(f'Round {game_index}, total reward: {total_reward} (took {time.time() - start_time}s)')
-            if game_index % 250 == 0:
-                env.save_to_file(f'turtle_{game_index}.ps')
-            game_performance.append(total_reward / step_index)
+                print(f'Round {game_index}, avg. reward: {np.average(reward_history)} (took {time.time() - start_time}s)')
+                reward_history = []
+                start_time = time.time()
+            if game_index % DISPLAY_GAMES == 0:
+                env.save_to_file(f'images/turtle_{game_index}.ps')
+            game_performance.append(total_reward)
     except KeyboardInterrupt:
         print('Interrupted, showing graph')
     c = np.cumsum(np.insert(game_performance, 0, 0))

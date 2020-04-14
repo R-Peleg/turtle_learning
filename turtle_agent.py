@@ -4,7 +4,7 @@ class TurtleQTableAgent(object):
     LEARNING_RATE = 0.2
     DISCOUNT = 0.8
     EXPLORATION_RATE = 0.05
-    DISCRETE_STATE_SIZE = [25, 25, 36]
+    DISCRETE_STATE_SIZE = [15, 15, 18] * 2
     MAX_INDICES = [i - 1 for i in DISCRETE_STATE_SIZE]
 
     def __init__(self, observation_space, action_space):
@@ -25,12 +25,13 @@ class TurtleQTableAgent(object):
         action_array = self._q_table[discrete_state]
         return np.argmax(action_array)
 
-    def feedback(self, state, action, new_state, reward):
-        discrete_state = self._to_discrete_state(state)
-        discrete_new_state = self._to_discrete_state(new_state)
+    def feedback(self, feedbacks):
+        for state, action, new_state, reward in feedbacks:
+            discrete_state = self._to_discrete_state(state)
+            discrete_new_state = self._to_discrete_state(new_state)
 
-        current_q = self._q_table[discrete_state + (action,)]
-        max_future_q = np.max(self._q_table[discrete_new_state])
-        new_q = (1 - self.LEARNING_RATE) * current_q + \
-            self.LEARNING_RATE * (reward + self.DISCOUNT * max_future_q)
-        self._q_table[discrete_state + (action,)] = new_q
+            current_q = self._q_table[discrete_state + (action,)]
+            max_future_q = np.max(self._q_table[discrete_new_state])
+            new_q = (1 - self.LEARNING_RATE) * current_q + \
+                self.LEARNING_RATE * (reward + self.DISCOUNT * max_future_q)
+            self._q_table[discrete_state + (action,)] = new_q

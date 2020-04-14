@@ -30,7 +30,7 @@ class BaseTurtleEnv(gym.Env, metaclass=abc.ABCMeta):
         turtle.tracer(1)
 
     def disable_draw(self):
-        turtle.tracer(False)
+        turtle.tracer(0, 0)
 
     def step(self, action):
         action_mathod = self._possible_actions[action]
@@ -110,5 +110,69 @@ class DontTouchTheWallEnvironment(BaseTurtleEnv):
             reward = -100
         else:
             reward = 10
+        info = {}
+        return reward, done, info
+
+class HitThePointChallange(BaseTurtleEnv):
+    """
+    The challange: Stay as long as you can without falling from the border
+    """
+    def _get_possible_actions(self):
+        def right():
+            self._turtle.circle(100, 20)
+        def left():
+            self._turtle.circle(-100, 20)
+        def forward():
+            self._turtle.forward(50)
+        return [right, left]
+
+    def _evaluate_current_state(self, action, state):
+        position_x, position_y, angle = state
+        done = False
+        is_out_of_bound = abs(position_x) > self.MAX_LOCATION_X or abs(position_y) > self.MAX_LOCATION_Y
+        distance_to_target = self._turtle.distance(250, -250)
+        # if is_out_of_bound:
+        #     done = True
+        #     reward = -10
+        if distance_to_target < 100:
+            done = True
+            reward = 1000
+        else:
+            reward = 30 - distance_to_target
+        info = {}
+        return reward, done, info
+
+    def reset(self):
+        super().reset()
+        self._turtle.penup()
+        self._turtle.setposition(
+            np.random.uniform(low=-self.MAX_LOCATION_X/2, high=self.MAX_LOCATION_X/2),
+            np.random.uniform(low=-self.MAX_LOCATION_Y/2, high=self.MAX_LOCATION_Y/2),
+            )
+        self._turtle.setheading(np.random.uniform(low=0, high=360))
+        self._turtle.pendown()
+
+
+
+class VerticalMovementChallange(BaseTurtleEnv):
+    """
+    The challange: Stay as long as you can without in the main axis
+    """
+    def _get_possible_actions(self):
+        def right():
+            self._turtle.circle(100, 20)
+        def left():
+            self._turtle.circle(-100, 20)
+        return [right, left]
+
+    def _evaluate_current_state(self, action, state):
+        position_x, position_y, angle = state
+        done = False
+        is_out_of_bound = abs(position_x) > self.MAX_LOCATION_X or abs(position_y) > self.MAX_LOCATION_Y
+        if is_out_of_bound:
+            done = True
+            reward = -100
+        else:
+            reward = max(5, 2 * (30 - min(abs(90 - angle), abs(270 - angle))))
         info = {}
         return reward, done, info
