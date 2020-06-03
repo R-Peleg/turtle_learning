@@ -19,6 +19,7 @@ class BaseTurtleEnv(gym.Env, metaclass=abc.ABCMeta):
     def __init__(self):
         self._possible_actions = self._get_possible_actions()
         self._turtle : turtle.Turtle = turtle.Turtle()
+        self._turtle.shape('turtle')
         self._turtle.speed(0)
         self.action_space = spaces.Discrete(len(self._possible_actions))
         high = np.array([self.MAX_LOCATION_X, self.MAX_LOCATION_Y, 360], dtype=np.float32)
@@ -46,6 +47,7 @@ class BaseTurtleEnv(gym.Env, metaclass=abc.ABCMeta):
 
     def reset(self):
         self._turtle.reset()
+        self._turtle.color('blue')
 
     def render(self, mode='human'):
         pass #  TODO
